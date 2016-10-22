@@ -64,6 +64,7 @@ bin_PROGRAMS = test_absolute_value
 
 test_absolute_value_SOURCES = test_absolute_value.c
 test_absolute_value_CFLAGS = -g -Wall
+test_absolute_value_LDADD = -lastrounit
 ```
 
 And now we simply run `make check` to see if the test passes. As you have no
