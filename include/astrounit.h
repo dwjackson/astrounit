@@ -59,7 +59,7 @@ astro_print_fail_str(const char *expected,
  *****************************************************************************/
 
 /* Generic assert */
-#define u_assert(test, failure_message) do { \
+#define assert(test, failure_message) do { \
     if (!(test)) {                           \
         printf("%s\n", failure_message);     \
         return failure_message;              \
@@ -67,7 +67,7 @@ astro_print_fail_str(const char *expected,
 } while (0)
 
 /* Assert that two integers are equal */
-#define u_assert_int_eq(expected, actual, msg)                               \
+#define assert_int_eq(expected, actual, msg)                               \
     do {                                                                     \
         if ((expected) != (actual)) {                                        \
             astro_print_fail_int(expected, actual, msg, __FILE__, __LINE__); \
@@ -76,7 +76,7 @@ astro_print_fail_str(const char *expected,
     } while (0)
 
 /* Assert that two strings are equal */
-#define u_assert_str_eq(expected, actual, msg)                               \
+#define assert_str_eq(expected, actual, msg)                               \
     do {                                                                     \
         if (strcmp((expected), (actual)) != 0) {                             \
             astro_print_fail_str(expected, actual, msg, __FILE__, __LINE__); \
