@@ -1,4 +1,4 @@
-# Astronomic Unit - A unit testing framework for C
+# Astronomical Unit - A unit testing framework for C
 
 AstroUnit is a simple unit testing framework for C. AstroUnit works by letting
 you create small executables that execute tests. If the executable returns a
