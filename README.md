@@ -5,6 +5,28 @@ you create small executables that execute tests. If the executable returns a
 0 from its main routine, the test passed. Any other return value indicates
 that it failed. This allows it to work with various build systems.
 
+## Building and Installing
+
+If you got this by cloning the git repository, you will need the Autotools and
+have to run the following to prepare it for building:
+
+```sh
+autoreconf -iv
+```
+
+To build AstroUnit:
+
+```sh
+./configure
+make
+```
+
+Then, to install, run the following as root:
+
+```sh
+make install
+```
+
 ## Using AstroUnit with Autotools
 
 If you use the Autotools for building your project, it's fairly easy to
