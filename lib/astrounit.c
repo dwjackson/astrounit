@@ -89,6 +89,7 @@ astro_suite_run(struct astro_suite *suite)
             int status;
             waitpid(pid, &status, 0);
             if (status != 0) {
+                printf("Test exited with abornmal exit status: %d\n", status);
                 num_failures++;
             }
         }
