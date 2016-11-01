@@ -5,9 +5,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 
 #define DEFAULT_BUFSIZE 10
-#define FAIL_FMT
+#define MAX_TEST_TIME 5
 
 struct astro_test {
     astro_ret_t (*run)(void*);
@@ -72,11 +73,12 @@ astro_suite_run(struct astro_suite *suite)
     num_failures = 0;
     for (i = 0; i < suite->length; i++) {
         test = &(suite->tests)[i];
-        pid_t pid = fork();
-        if (pid < 0) {
+        pid_t test_pid = fork();
+        pid_t timer_pid = fork();
+        if (test_pid < 0) {
             fprintf(stderr, "ERROR: Could not fork()\n");
             exit(EXIT_FAILURE);
-        } else if (pid == 0) {
+        } else if (test_pid == 0) {
             /* In the child, run the test and exit */
             message = (test->run)(test->args);
             if (message == NULL) {
@@ -84,13 +86,27 @@ astro_suite_run(struct astro_suite *suite)
             } else {
                 exit(EXIT_FAILURE);
             }
+        } else if (timer_pid == 0) {
+            /* In the timer child, run a timer to catch infinite loops */
+            clock_t c;
+            do {
+                c = clock();
+            } while (c / CLOCKS_PER_SEC < MAX_TEST_TIME);
+            exit(EXIT_SUCCESS);
         } else {
-            /* In the parent, wait for the child to finish the test */
+            /* In the parent, wait for the test or timer to finish */
+            pid_t pid;
             int status;
-            waitpid(pid, &status, 0);
-            if (status != 0) {
+            pid = wait(&status);
+            if (pid == test_pid && status != 0) {
                 printf("Test exited with abornmal exit status: %d\n", status);
                 num_failures++;
+            } else if (pid == timer_pid) {
+                printf("Test took too long to finish\n");
+                num_failures++;
+                kill(test_pid, SIGKILL);
+            } else {
+                kill(timer_pid, SIGKILL);
             }
         }
         num_tests++;
