@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-typedef char *astro_ret_t;
+typedef int astro_ret_t;
 
 #define ASTRO_TEST_BEGIN(test_name)   \
     astro_ret_t test_name(void *args) \
@@ -62,7 +62,7 @@ astro_print_fail_str(const char *expected,
 #define assert(test, failure_message) do { \
     if (!(test)) {                           \
         printf("%s\n", failure_message);     \
-        return failure_message;              \
+        return -1;              \
     }                                        \
 } while (0)
 
@@ -71,7 +71,7 @@ astro_print_fail_str(const char *expected,
     do {                                                                     \
         if ((expected) != (actual)) {                                        \
             astro_print_fail_int(expected, actual, msg, __FILE__, __LINE__); \
-            return msg;                                                      \
+            return -1;                                                      \
         }                                                                    \
     } while (0)
 
@@ -80,7 +80,7 @@ astro_print_fail_str(const char *expected,
     do {                                                                     \
         if (strcmp((expected), (actual)) != 0) {                             \
             astro_print_fail_str(expected, actual, msg, __FILE__, __LINE__); \
-            return msg;                                                      \
+            return -1;                                                      \
         }                                                                    \
     } while (0)
 

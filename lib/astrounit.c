@@ -67,7 +67,7 @@ astro_suite_run(struct astro_suite *suite)
     struct astro_test *test;
     int num_tests;
     int num_failures;
-    char *message;
+    astro_ret_t retval;
 
     num_tests = 0;
     num_failures = 0;
@@ -80,8 +80,8 @@ astro_suite_run(struct astro_suite *suite)
             exit(EXIT_FAILURE);
         } else if (test_pid == 0) {
             /* In the child, run the test and exit */
-            message = (test->run)(test->args);
-            if (message == NULL) {
+            retval = (test->run)(test->args);
+            if (retval == 0) {
                 exit(EXIT_SUCCESS);
             } else {
                 exit(EXIT_FAILURE);
