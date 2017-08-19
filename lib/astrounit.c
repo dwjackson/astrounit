@@ -104,10 +104,7 @@ astro_suite_run(struct astro_suite *suite)
 				/* Wait for the test or timer to finish */
 				pid_t pid;
 				int status;
-				printf("[DEBUG] test_pid = %d\n", test_pid);
-				printf("[DEBUG] timer_pid = %d\n", timer_pid);
 				pid = wait(&status);
-				printf("[DEBUG] pid = %d\n", pid);
 				if (pid == test_pid && status != 0) {
 					printf("Test exited with abornmal exit status: %d\n", status);
 					num_failures++;
