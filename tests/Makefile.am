@@ -1,6 +1,6 @@
 TESTS = test_success test_failure
 
-bin_PROGRAMS = test_success test_failure
+check_PROGRAMS = test_success test_failure
 
 test_success_SOURCES = test_success.c
 test_success_CFLAGS = -g -Wall -I$(top_builddir)/include
