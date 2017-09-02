@@ -1,0 +1,76 @@
+.Dd September 2, 2017
+.Dt ASTROUNIT 3
+.Os
+.Sh NAME
+.Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
+astro_suite_num_failures assert_str_eq assert_int_eq assert
+.Nd Create and run tests for C programs
+.Sh LIBRARY
+.Lb libastrounit
+.Sh SYNOPSIS
+.In astrounit.h
+.Ft struct astro_suite
+.Fo *astro_suite_create
+.Fc
+.Ft void
+.Fo astro_suite_destroy
+.Fa "astro_suite *suite"
+.Fc
+.Ft void
+.Fo astro_suite_add_test
+.Fa "struct astro_suite *suite" "astro_ret_t (*test)(void*)" "void *args"
+.Fc
+.Ft int
+.Fo astro_suite_run
+.Fa "struct astro_suite *suite"
+.Fc
+.Ft int
+.Fo astro_suite_num_failures
+.Fa "struct astro_suite *suite"
+.Fc
+.Fo assert_str_eq
+.Fa "const char *str1" "const char *str2" "const char *failure_message"
+.Fc
+.Fo assert_int_eq
+.Fa "int num1" "int num2 "const char *failure_message"
+.Fc
+.Fo assert
+.Fa "int test" "const char *failure_message"
+.Fc
+.Sh DESCRIPTION
+Astrounit is a simple C testing library. To create a test, a test suite must
+be created and tests added to it. Tests themselves are just functions, but
+they are creatd using a special syntax:
+.Qq ASTRO_TEST_BEGIN(test_name)
+where
+.Qq test_name
+is the name of the test. The test must then have an opening brace {, followed
+by the test code, then a closing brace }. The test must then be finished with
+.Qq ASTRO_TEST_END
+.Sh EXAMPLE
+This is a simple example of a test. It will exit with a failure status if the
+test fails and a success status if it passes.
+.Bd -literal -offsset indent
+#include <astrounit.h>
+#include <stdlib.h>
+
+ASTRO_TEST_BEGIN(simple_test)
+{
+	char str1[] = "test";
+	char str2[] = "test";
+
+	assert_str_eq(str1, str2, "Strings not equal");
+}
+ASTRO_TEST_END
+
+int main(void)
+{
+	int num_failures = 0;
+	struct astro_suite *suite = astro_suite_create();
+	astro_suite_add_test(suite, simple_test, NULL);
+	astro_suite_run_tests(suite);
+	num_failures = astro_suite_num_failures(suite);
+	astro_suite_destroy(suite);
+	return (num_failures == 0 : EXIT_SUCCESS : EXIT_FAILURE);
+}
+.Ed
