@@ -127,7 +127,7 @@ perform_test(struct astro_test *test)
 		} else if (timer_pid == 0) {
 			run_timer();
 		} else {
-			wait_for_test(test_pid, timer_pid);
+			failure = wait_for_test(test_pid, timer_pid);
 		}
 	}
 
