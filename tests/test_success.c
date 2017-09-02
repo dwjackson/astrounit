@@ -19,7 +19,7 @@ main(void)
 	astro_suite_add_test(suite, test_str_eq, NULL);
 	astro_suite_run(suite);
 	num_failures = astro_suite_num_failures(suite);
-	astro_suite_destroy();
+	astro_suite_destroy(suite);
 
-	return (num_failues == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
+	return (num_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
