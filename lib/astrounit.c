@@ -22,6 +22,15 @@ struct astro_suite {
 	struct astro_test tests[];
 };
 
+static int 
+perform_test(struct astro_test *test);
+
+static void
+run_timer();
+
+static int 
+wait_for_test(pid_t test_pid, pid_t timer_pid);
+
 struct astro_suite
 *astro_suite_create()
 {
@@ -67,7 +76,6 @@ astro_suite_run(struct astro_suite *suite)
 	struct astro_test *test;
 	int num_tests;
 	int num_failures;
-	astro_ret_t retval;
 	pid_t test_pid;
 	pid_t timer_pid;
 
@@ -75,50 +83,7 @@ astro_suite_run(struct astro_suite *suite)
 	num_failures = 0;
 	for (i = 0; i < suite->length; i++) {
 		test = &(suite->tests)[i];
-		test_pid = fork();
-		if (test_pid < 0) {
-			fprintf(stderr, "ERROR: Could not fork()\n");
-			exit(EXIT_FAILURE);
-		} else if (test_pid == 0) {
-			/* In the child, run the test and exit */
-			retval = (test->run)(test->args);
-			if (retval == 0) {
-				exit(EXIT_SUCCESS);
-			} else {
-				exit(EXIT_FAILURE);
-			}
-		} else {
-			/* In the parent */
-			timer_pid = fork();
-			if (timer_pid < 0) {
-				fprintf(stderr, "ERROR: Could not fork()\n");
-				exit(EXIT_FAILURE);
-			} else if (timer_pid == 0) {
-				/* Run a timer to catch infinite loops */
-				clock_t c;
-				do {
-					c = clock();
-				} while (c / CLOCKS_PER_SEC < MAX_TEST_TIME);
-				exit(EXIT_SUCCESS);
-			} else {
-				/* Wait for the test or timer to finish */
-				pid_t pid;
-				int status;
-				pid = wait(&status);
-				if (pid == test_pid && status != 0) {
-					printf("Test exited with abornmal exit status: %d\n", status);
-					num_failures++;
-				} else if (pid == timer_pid) {
-					printf("Test took too long to finish\n");
-					num_failures++;
-					kill(test_pid, SIGKILL);
-					waitpid(test_pid, &status, 0);
-				} else {
-					kill(timer_pid, SIGKILL);
-					waitpid(timer_pid, &status, 0);
-				}
-			}
-		}
+		num_failures += perform_test(test);
 		num_tests++;
 	}
 	suite->num_failures = num_failures;
@@ -133,6 +98,81 @@ astro_suite_run(struct astro_suite *suite)
 	}
 }
 
+static int 
+perform_test(struct astro_test *test)
+{
+	pid_t test_pid;
+	pid_t timer_pid;
+	astro_ret_t retval;
+	int failure = 0;
+
+	test_pid = fork();
+	if (test_pid < 0) {
+		fprintf(stderr, "ERROR: Could not fork()\n");
+		exit(EXIT_FAILURE);
+	} else if (test_pid == 0) {
+		/* In the child, run the test and exit */
+		retval = (test->run)(test->args);
+		if (retval == 0) {
+			exit(EXIT_SUCCESS);
+		} else {
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		/* In the parent */
+		timer_pid = fork();
+		if (timer_pid < 0) {
+			fprintf(stderr, "ERROR: Could not fork()\n");
+			exit(EXIT_FAILURE);
+		} else if (timer_pid == 0) {
+			run_timer();
+		} else {
+			wait_for_test(test_pid, timer_pid);
+		}
+	}
+
+	return failure;
+}
+
+/*
+ * Run a timer to catch infinite loops
+ */
+static void
+run_timer()
+{
+	clock_t c;
+	do {
+		c = clock();
+	} while (c / CLOCKS_PER_SEC < MAX_TEST_TIME);
+	exit(EXIT_SUCCESS);
+}
+
+/*
+ * Wait for the test or timer to finish
+ */
+static int 
+wait_for_test(pid_t test_pid, pid_t timer_pid)
+{
+	pid_t pid;
+	int status;
+	int failure = 0;
+
+	pid = wait(&status);
+	if (pid == test_pid && status != 0) {
+		printf("Test exited with abornmal exit status: %d\n", status);
+		failure = 1;
+	} else if (pid == timer_pid) {
+		printf("Test took too long to finish\n");
+		failure = 1;
+		kill(test_pid, SIGKILL);
+		waitpid(test_pid, &status, 0);
+	} else {
+		kill(timer_pid, SIGKILL);
+		waitpid(timer_pid, &status, 0);
+	}
+	return failure;
+}
+
 int
 astro_suite_num_failures(struct astro_suite *suite)
 {
@@ -140,22 +180,26 @@ astro_suite_num_failures(struct astro_suite *suite)
 }
 
 void
-astro_print_fail_int(int expected,
-					 int actual,
-					 const char *failure_message,
-					 const char *file,
-					 int line)
+astro_print_fail_int(
+	int expected,
+	int actual,
+	const char *failure_message,
+	const char *file,
+	int line
+)
 {
 	char fmt[] = "%s:%d - %s; expected %d, was %d\n";
 	printf(fmt, file, line, failure_message, expected, actual);
 }
 
 void
-astro_print_fail_str(const char *expected,
-					 const char *actual,
-					 const char *failure_message,
-					 const char *file,
-					 int line)
+astro_print_fail_str(
+	const char *expected,
+	const char *actual,
+	const char *failure_message,
+	const char *file,
+	int line
+)
 {
 	char fmt[] = "%s:%d - %s; expected \"%s\", was \"%s\"\n";
 	printf(fmt, file, line, failure_message, expected, actual);
