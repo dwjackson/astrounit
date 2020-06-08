@@ -2,18 +2,24 @@
 #define ATROUNIT_H
 
 #include <string.h>
+#include <setjmp.h>
 
 typedef int astro_ret_t;
 
 #define ASTRO_TEST_BEGIN(test_name)   \
-    astro_ret_t test_name(void *args) \
-    {                                 \
-        do
+astro_ret_t test_name(void *args) \
+{ \
+	extern jmp_buf astro_fail; \
+	if (setjmp(astro_fail) == 0) { \
+		do \
 
 #define ASTRO_TEST_END \
-        while (0);     \
-        return 0;      \
-    }
+while (0);     \
+} else { \
+	return -1; \
+} \
+	return 0; \
+}
 
 struct astro_suite;
 
@@ -60,27 +66,30 @@ astro_print_fail_str(const char *expected,
 
 /* Generic assert */
 #define assert(test, failure_message) do { \
-    if (!(test)) {                           \
-        printf("%s\n", failure_message);     \
-        return -1;              \
-    }                                        \
+    if (!(test)) {                         \
+        printf("%s\n", failure_message);   \
+        extern jmp_buf astro_fail;         \
+        longjmp(astro_fail, 0);            \
+    }                                      \
 } while (0)
 
 /* Assert that two integers are equal */
-#define assert_int_eq(expected, actual, msg)                               \
+#define assert_int_eq(expected, actual, msg)                                 \
     do {                                                                     \
         if ((expected) != (actual)) {                                        \
+            extern jmp_buf astro_fail;                                       \
             astro_print_fail_int(expected, actual, msg, __FILE__, __LINE__); \
-            return -1;                                                      \
+            longjmp(astro_fail, 0);                                          \
         }                                                                    \
     } while (0)
 
 /* Assert that two strings are equal */
-#define assert_str_eq(expected, actual, msg)                               \
+#define assert_str_eq(expected, actual, msg)                                 \
     do {                                                                     \
         if (strcmp((expected), (actual)) != 0) {                             \
+            extern jmp_buf astro_fail;                                       \
             astro_print_fail_str(expected, actual, msg, __FILE__, __LINE__); \
-            return -1;                                                      \
+            longjmp(astro_fail, 0);                                          \
         }                                                                    \
     } while (0)
 

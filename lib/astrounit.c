@@ -10,6 +10,13 @@
 #define DEFAULT_BUFSIZE 10
 #define MAX_TEST_TIME 5
 
+/* Failure Jump Environment
+ *
+ * This is the environment to which any failed unit test jumps on failure. This
+ * is roughly analogous to exception catching.
+ */
+jmp_buf astro_fail;
+
 struct astro_test {
 	astro_ret_t (*run)(void*);
 	void *args;
