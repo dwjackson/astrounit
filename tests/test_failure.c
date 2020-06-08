@@ -1,6 +1,11 @@
 #include "astrounit.h"
 #include <stdlib.h>
 
+/*
+ * If you add/remove a test that should fail, change this number:
+ */
+#define EXPECTED_FAIL_COUNT 2
+
 ASTRO_TEST_BEGIN(test_str_eq)
 {
 	char str1[] = "test";
@@ -35,5 +40,8 @@ main(void)
 	num_failures = astro_suite_num_failures(suite);
 	astro_suite_destroy(suite);
 
-	return (num_failures == 1 ? EXIT_SUCCESS : EXIT_FAILURE);
+	if (num_failures == EXPECTED_FAIL_COUNT) {
+		return EXIT_SUCCESS;
+	}
+	return EXIT_FAILURE;
 }
