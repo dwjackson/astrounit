@@ -36,8 +36,7 @@ main(void)
 	suite = astro_suite_create();
 	astro_suite_add_test(suite, test_str_eq, NULL);
 	astro_suite_add_test(suite, test_fail_in_function, NULL);
-	astro_suite_run(suite);
-	num_failures = astro_suite_num_failures(suite);
+	num_failures = astro_suite_run(suite);
 	astro_suite_destroy(suite);
 
 	if (num_failures == EXPECTED_FAIL_COUNT) {

@@ -37,11 +37,8 @@ astro_suite_add_test(struct astro_suite *suite,
                      astro_ret_t (*test)(void*),
                      void *args);
 
-void
-astro_suite_run(struct astro_suite *suite);
-
 int
-astro_suite_num_failures(struct astro_suite *suite);
+astro_suite_run(struct astro_suite *suite);
 
 
 /****************************************************************************

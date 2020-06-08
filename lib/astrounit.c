@@ -78,7 +78,7 @@ astro_suite_add_test(struct astro_suite *suite,
 	suite->length++;
 }
 
-void
+int
 astro_suite_run(struct astro_suite *suite)
 {
 	int i;
@@ -105,6 +105,7 @@ astro_suite_run(struct astro_suite *suite)
 		printf(" %d FAILURES / %d TESTS\n", num_failures, num_tests);
 		printf("----------------------------------------\n");
 	}
+	return suite->num_failures;
 }
 
 static int 
@@ -180,12 +181,6 @@ wait_for_test(pid_t test_pid, pid_t timer_pid)
 		waitpid(timer_pid, &status, 0);
 	}
 	return failure;
-}
-
-int
-astro_suite_num_failures(struct astro_suite *suite)
-{
-	return suite->num_failures;
 }
 
 void

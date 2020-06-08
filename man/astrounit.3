@@ -3,7 +3,7 @@
 .Os
 .Sh NAME
 .Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
-astro_suite_num_failures assert_str_eq assert_int_eq assert
+assert_str_eq assert_int_eq assert
 .Nd Create and run tests for C programs
 .Sh LIBRARY
 .Lb libastrounit
@@ -22,10 +22,6 @@ astro_suite_num_failures assert_str_eq assert_int_eq assert
 .Fc
 .Ft int
 .Fo astro_suite_run
-.Fa "struct astro_suite *suite"
-.Fc
-.Ft int
-.Fo astro_suite_num_failures
 .Fa "struct astro_suite *suite"
 .Fc
 .Fo assert_str_eq
@@ -68,8 +64,7 @@ int main(void)
 	int num_failures = 0;
 	struct astro_suite *suite = astro_suite_create();
 	astro_suite_add_test(suite, simple_test, NULL);
-	astro_suite_run_tests(suite);
-	num_failures = astro_suite_num_failures(suite);
+	num_failures = astro_suite_run_tests(suite);
 	astro_suite_destroy(suite);
 	return (num_failures == 0 : EXIT_SUCCESS : EXIT_FAILURE);
 }
