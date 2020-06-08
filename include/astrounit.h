@@ -4,6 +4,9 @@
 #include <string.h>
 #include <setjmp.h>
 
+#define ASTRO_FAIL -1
+#define ASTRO_PASS 0
+
 typedef int astro_ret_t;
 
 #define ASTRO_TEST_BEGIN(test_name)   \
@@ -16,9 +19,9 @@ astro_ret_t test_name(void *args) \
 #define ASTRO_TEST_END \
 while (0);     \
 } else { \
-	return -1; \
+	return ASTRO_FAIL; \
 } \
-	return 0; \
+	return ASTRO_PASS; \
 }
 
 struct astro_suite;

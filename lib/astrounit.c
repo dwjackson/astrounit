@@ -8,7 +8,7 @@
 #include <time.h>
 
 #define DEFAULT_BUFSIZE 10
-#define MAX_TEST_TIME 5
+#define MAX_TEST_SECONDS 5
 
 /* Failure Jump Environment
  *
@@ -63,13 +63,15 @@ astro_suite_add_test(struct astro_suite *suite,
 	astro_ret_t (*test_run)(void*),
 	void *args)
 {
+	size_t size;
+	struct astro_test test;
+
 	if (suite->length + 1 >= suite->bufsize) {
 		suite->bufsize *= 2;
-		size_t size = sizeof(struct astro_suite)
+		size = sizeof(struct astro_suite)
 			+ sizeof(struct astro_test) * suite->bufsize;
 		suite = realloc(suite, size);
 	}
-	struct astro_test test;
 	test.run = test_run;
 	test.args = args;
 	(suite->tests)[suite->length] = test;
@@ -150,7 +152,7 @@ run_timer()
 	clock_t c;
 	do {
 		c = clock();
-	} while (c / CLOCKS_PER_SEC < MAX_TEST_TIME);
+	} while (c / CLOCKS_PER_SEC < MAX_TEST_SECONDS);
 	exit(EXIT_SUCCESS);
 }
 
