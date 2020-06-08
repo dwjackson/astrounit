@@ -1,1 +1,1 @@
-SUBDIRS = lib include tests man
+SUBDIRS = lib include tests man src

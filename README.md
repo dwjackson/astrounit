@@ -101,6 +101,17 @@ int absolute_value(int x)
 
 Now if we run `make check` the tests all pass.
 
+## Boilerplate
+
+Astrounit has a fair amount of boilerplate required to set up a test, so the
+`astro_create` program can be used to create a new test file for you. If given
+an argument it will create the test in the file named by the argument,
+otherwise it will output the boilerplate to stdout.
+
+```sh
+astro_create test_example.c
+```
+
 ## License
 
 AstroUnit is licensed under the MIT license.
