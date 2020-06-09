@@ -158,7 +158,10 @@ run_timer()
 }
 
 /*
- * Wait for the test or timer to finish
+ * Wait for the test or timer to finish, then depending on which finishes
+ * first, kill the other process and wait for it to finish as well. If the
+ * timer finishes first then the test has taken too long to run and fails, but
+ * if the test finishes first the timer is no longer needed and is killed.
  */
 static int 
 wait_for_test(pid_t test_pid, pid_t timer_pid)
@@ -169,7 +172,7 @@ wait_for_test(pid_t test_pid, pid_t timer_pid)
 
 	pid = wait(&status);
 	if (pid == test_pid && status != 0) {
-		printf("Test exited with abornmal exit status: %d\n", status);
+		printf("Test exited with abnormal exit status: %d\n", status);
 		failure = 1;
 	} else if (pid == timer_pid) {
 		printf("Test took too long to finish\n");

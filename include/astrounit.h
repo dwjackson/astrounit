@@ -67,8 +67,8 @@ astro_print_fail_str(const char *expected,
 /* Generic assert */
 #define assert(test, failure_message) do { \
     if (!(test)) {                         \
-        printf("%s\n", failure_message);   \
         extern jmp_buf astro_fail;         \
+        printf("%s\n", failure_message);   \
         longjmp(astro_fail, 0);            \
     }                                      \
 } while (0)
