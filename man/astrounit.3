@@ -3,7 +3,7 @@
 .Os
 .Sh NAME
 .Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
-assert_str_eq assert_int_eq assert astro_test_args
+assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown
 .Nd Create and run tests for C programs
 .Sh LIBRARY
 .Lb libastrounit
@@ -37,6 +37,14 @@ assert_str_eq assert_int_eq assert astro_test_args
 .Fo astro_test_args
 .Fa "type"
 .Fc
+.Ft void
+.Fo astro_suite_setup
+.Fa "struct astro_suite *suite" "void (*setup)(void*)" "void *args"
+.Fc
+.Ft void
+.Fo astro_suite_teardown
+.Fa "struct astro_suite *suite" "void (*teardown)(void*)"
+.Fc
 .Sh DESCRIPTION
 Astrounit is a simple C testing library. To create a test, a test suite must
 be created and tests added to it. Tests themselves are just functions, but
@@ -47,10 +55,24 @@ where
 is the name of the test. The test must then have an opening brace {, followed
 by the test code, then a closing brace }. The test must then be finished with
 .Qq ASTRO_TEST_END
+.Pp
+The
+.Fn astro_test_args
+macro is used to get the arguments to a test function in a safe way. It is to
+be passed the type to which to case the argument void pointer.
+.Pp
+The
+.Fn astro_suite_setup
+function allows you to add a setup function that will run before each test. It
+can take a single argument that is a void pointer so that it can be cast to
+any pointer that you might need. The
+.Fn astro_suite_teardown
+function runs a teardown function after every test and will use the same
+argument as was passed to the setup function.
 .Sh EXAMPLE
 This is a simple example of a test. It will exit with a failure status if the
 test fails and a success status if it passes.
-.Bd -literal -offsset indent
+.Bd -literal -offset indent
 #include <astrounit.h>
 #include <stdlib.h>
 
@@ -58,7 +80,7 @@ ASTRO_TEST_BEGIN(simple_test)
 {
 	char str1[] = "test";
 	char str2[] = "test";
-	int *num_ptr = astr_test_args(int*);
+	int *num_ptr = astro_test_args(int*);
 	int num = *num_ptr;
 
 	assert_str_eq(str1, str2, "Strings not equal");
