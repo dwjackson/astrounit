@@ -28,11 +28,12 @@ struct astro_suite {
 	size_t length;
 	void (*setup)(void*);
 	void *setup_args;
+	void (*teardown)(void*);
 	struct astro_test tests[];
 };
 
 static void 
-empty_setup(void *args);
+do_nothing(void *args);
 
 static int 
 perform_test(struct astro_suite *suite, struct astro_test *test);
@@ -53,7 +54,9 @@ struct astro_suite
 	if (suite != NULL) {
 		memset(suite, 0, size);
 		suite->bufsize = DEFAULT_BUFSIZE;
-		suite->setup = empty_setup;
+		suite->setup = do_nothing;
+		suite->setup_args = NULL;
+		suite->teardown = do_nothing;
 	}
 	return suite;
 }
@@ -128,10 +131,22 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 		exit(EXIT_FAILURE);
 	} else if (test_pid == 0) {
 		/* In the child, run the test and exit */
-		suite->setup(suite->setup_args);
+
+		if (setjmp(astro_fail) == 0) {
+			suite->setup(suite->setup_args);
+		} else {
+			exit(EXIT_FAILURE);
+		}
+
 		retval = (test->run)(test->args);
-		if (retval == 0) {
-			exit(EXIT_SUCCESS);
+
+		if (setjmp(astro_fail) == 0) {
+			suite->teardown(suite->setup_args);
+			if (retval == 0) {
+				exit(EXIT_SUCCESS);
+			} else {
+				exit(EXIT_FAILURE);
+			}
 		} else {
 			exit(EXIT_FAILURE);
 		}
@@ -227,7 +242,13 @@ astro_suite_setup(struct astro_suite *suite, void (*setup)(void*), void *args)
 }
 
 static void 
-empty_setup(void *args)
+do_nothing(void *args)
 {
-	(void)args; /* Do nothing */
+	(void)args;
+}
+
+void
+astro_suite_teardown(struct astro_suite *suite, void (*teardown)(void*))
+{
+	suite->teardown = teardown;
 }
