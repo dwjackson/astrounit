@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BOILERPLATE "#include <astrounit.h>\n\n" \
+#define BOILERPLATE "#include <astrounit.h>\n" \
+	"#include<stdlib.h>\n\n" \
 	"ASTRO_TEST_BEGIN(test_example)\n" \
 	"{\n" \
 	"\tassert_int_eq(2, 1 + 1, \"Your ALU seems broken!\");\n" \
@@ -14,7 +15,7 @@
 	"\tastro_suite_add_test(suite, test_example, NULL);\n" \
 	"\tnum_failures = astro_suite_run(suite);\n" \
 	"\tastro_suite_destroy(suite);\n" \
-	"\treturn 0;\n" \
+	"\treturn num_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;\n" \
 	"}\n"
 
 int main(int argc, char *argv[])
