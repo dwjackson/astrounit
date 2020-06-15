@@ -9,8 +9,10 @@
 
 typedef int astro_ret_t;
 
+#define ASTRO_TEST_ARGS_NAME _args
+
 #define ASTRO_TEST_BEGIN(test_name)   \
-astro_ret_t test_name(void *args) \
+astro_ret_t test_name(void *ASTRO_TEST_ARGS_NAME) \
 { \
 	extern jmp_buf astro_fail; \
 	if (setjmp(astro_fail) == 0) { \
@@ -23,6 +25,8 @@ while (0);     \
 } \
 	return ASTRO_PASS; \
 }
+
+#define astro_test_args(type) ((type) ASTRO_TEST_ARGS_NAME)
 
 struct astro_suite;
 

@@ -3,7 +3,7 @@
 .Os
 .Sh NAME
 .Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
-assert_str_eq assert_int_eq assert
+assert_str_eq assert_int_eq assert astro_test_args
 .Nd Create and run tests for C programs
 .Sh LIBRARY
 .Lb libastrounit
@@ -30,8 +30,12 @@ assert_str_eq assert_int_eq assert
 .Fo assert_int_eq
 .Fa "int num1" "int num2" "const char *failure_message"
 .Fc
+.Ft type
 .Fo assert
 .Fa "int test" "const char *failure_message"
+.Fc
+.Fo astro_test_args
+.Fa "type"
 .Fc
 .Sh DESCRIPTION
 Astrounit is a simple C testing library. To create a test, a test suite must
@@ -54,8 +58,11 @@ ASTRO_TEST_BEGIN(simple_test)
 {
 	char str1[] = "test";
 	char str2[] = "test";
+	int *num_ptr = astr_test_args(int*);
+	int num = *num_ptr;
 
 	assert_str_eq(str1, str2, "Strings not equal");
+	assert_int_eq(123, num, "Numbers not equal");
 }
 ASTRO_TEST_END
 
@@ -63,7 +70,8 @@ int main(void)
 {
 	int num_failures = 0;
 	struct astro_suite *suite = astro_suite_create();
-	astro_suite_add_test(suite, simple_test, NULL);
+	int arg = 123;
+	astro_suite_add_test(suite, simple_test, &arg);
 	num_failures = astro_suite_run_tests(suite);
 	astro_suite_destroy(suite);
 	return (num_failures == 0 : EXIT_SUCCESS : EXIT_FAILURE);

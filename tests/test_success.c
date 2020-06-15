@@ -9,6 +9,17 @@ ASTRO_TEST_BEGIN(test_str_eq)
 }
 ASTRO_TEST_END
 
+struct test_args {
+	int a;
+};
+
+ASTRO_TEST_BEGIN(test_arguments)
+{
+	struct test_args *arguments = astro_test_args(struct test_args *);
+	assert_int_eq(123, arguments->a, "Wrong argument: a");
+}
+ASTRO_TEST_END
+
 int
 main(void)
 {
@@ -16,7 +27,12 @@ main(void)
 	struct astro_suite *suite;
 
 	suite = astro_suite_create();
+
 	astro_suite_add_test(suite, test_str_eq, NULL);
+
+	struct test_args args = { 123 };
+	astro_suite_add_test(suite, test_arguments, &args);
+
 	num_failures = astro_suite_run(suite);
 	astro_suite_destroy(suite);
 
