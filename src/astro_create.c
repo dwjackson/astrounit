@@ -4,7 +4,7 @@
 #define BOILERPLATE "#include <astrounit.h>\n\n" \
 	"ASTRO_TEST_BEGIN(test_example)\n" \
 	"{\n" \
-	"\tassert_int_eq(2, 1 + 1, \"Your FPU seems broken!\");\n" \
+	"\tassert_int_eq(2, 1 + 1, \"Your ALU seems broken!\");\n" \
 	"}\n" \
 	"ASTRO_TEST_END\n\n" \
 	"int main()\n" \
