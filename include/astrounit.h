@@ -44,6 +44,9 @@ astro_suite_add_test(struct astro_suite *suite,
 int
 astro_suite_run(struct astro_suite *suite);
 
+void
+astro_suite_setup(struct astro_suite *suite, void (*setup)(void*), void *args);
+
 
 /****************************************************************************
  * ERROR PRINTERS                                                           *

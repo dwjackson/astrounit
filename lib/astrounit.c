@@ -26,11 +26,16 @@ struct astro_suite {
 	int num_failures;
 	size_t bufsize;
 	size_t length;
+	void (*setup)(void*);
+	void *setup_args;
 	struct astro_test tests[];
 };
 
+static void 
+empty_setup(void *args);
+
 static int 
-perform_test(struct astro_test *test);
+perform_test(struct astro_suite *suite, struct astro_test *test);
 
 static void
 run_timer();
@@ -48,6 +53,7 @@ struct astro_suite
 	if (suite != NULL) {
 		memset(suite, 0, size);
 		suite->bufsize = DEFAULT_BUFSIZE;
+		suite->setup = empty_setup;
 	}
 	return suite;
 }
@@ -92,7 +98,7 @@ astro_suite_run(struct astro_suite *suite)
 	num_failures = 0;
 	for (i = 0; i < suite->length; i++) {
 		test = &(suite->tests)[i];
-		num_failures += perform_test(test);
+		num_failures += perform_test(suite, test);
 		num_tests++;
 	}
 	suite->num_failures = num_failures;
@@ -109,7 +115,7 @@ astro_suite_run(struct astro_suite *suite)
 }
 
 static int 
-perform_test(struct astro_test *test)
+perform_test(struct astro_suite *suite, struct astro_test *test)
 {
 	pid_t test_pid;
 	pid_t timer_pid;
@@ -122,6 +128,7 @@ perform_test(struct astro_test *test)
 		exit(EXIT_FAILURE);
 	} else if (test_pid == 0) {
 		/* In the child, run the test and exit */
+		suite->setup(suite->setup_args);
 		retval = (test->run)(test->args);
 		if (retval == 0) {
 			exit(EXIT_SUCCESS);
@@ -210,4 +217,17 @@ astro_print_fail_str(
 {
 	char fmt[] = "%s:%d - %s; expected \"%s\", was \"%s\"\n";
 	printf(fmt, file, line, failure_message, expected, actual);
+}
+
+void
+astro_suite_setup(struct astro_suite *suite, void (*setup)(void*), void *args)
+{
+	suite->setup = setup;
+	suite->setup_args = args;
+}
+
+static void 
+empty_setup(void *args)
+{
+	(void)args; /* Do nothing */
 }
