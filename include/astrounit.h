@@ -93,6 +93,18 @@ astro_print_fail_str(const char *expected,
         }                                                                    \
     } while (0)
 
+/* Assert that two doubles are (roughly) equal */
+#define assert_double_eq(expected, actual, threshold, msg)                   \
+    do {                                                                     \
+        double lower = expected - threshold;                                 \
+        double upper = expected + threshold;                                 \
+        if (actual < lower || actual > upper) {                              \
+            extern jmp_buf astro_fail;                                       \
+            astro_print_fail_int(expected, actual, msg, __FILE__, __LINE__); \
+            longjmp(astro_fail, 0);                                          \
+        }                                                                    \
+    } while (0)
+
 /* Assert that two strings are equal */
 #define assert_str_eq(expected, actual, msg)                                 \
     do {                                                                     \

@@ -20,6 +20,14 @@ ASTRO_TEST_BEGIN(test_arguments)
 }
 ASTRO_TEST_END
 
+ASTRO_TEST_BEGIN(test_double_equals)
+{
+	assert_double_eq(123.45, 123.46, 0.01, "doubles not equal");
+	assert_double_eq(123.45, 123.45, 0.01, "doubles not equal");
+	assert_double_eq(123.45, 123.44, 0.01, "doubles not equal");
+}
+ASTRO_TEST_END
+
 int
 main(void)
 {
@@ -32,6 +40,7 @@ main(void)
 
 	struct test_args args = { 123 };
 	astro_suite_add_test(suite, test_arguments, &args);
+	astro_suite_add_test(suite, test_double_equals, NULL);
 
 	num_failures = astro_suite_run(suite);
 	astro_suite_destroy(suite);

@@ -1,9 +1,9 @@
-.Dd September 2, 2017
+.Dd June 16, 2020
 .Dt ASTROUNIT 3
 .Os
 .Sh NAME
 .Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
-assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown
+assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown assert_double_eq
 .Nd Create and run tests for C programs
 .Sh LIBRARY
 .Lb libastrounit
@@ -25,10 +25,13 @@ assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite
 .Fa "struct astro_suite *suite"
 .Fc
 .Fo assert_str_eq
-.Fa "const char *str1" "const char *str2" "const char *failure_message"
+.Fa "const char *expected" "const char *actual" "const char *failure_message"
 .Fc
 .Fo assert_int_eq
-.Fa "int num1" "int num2" "const char *failure_message"
+.Fa "int expected" "int actual" "const char *failure_message"
+.Fc
+.Fo assert_double_eq
+.Fa "double expected" "double actual" "double threshold" "const char *message"
 .Fc
 .Ft type
 .Fo assert
@@ -55,6 +58,16 @@ where
 is the name of the test. The test must then have an opening brace {, followed
 by the test code, then a closing brace }. The test must then be finished with
 .Qq ASTRO_TEST_END
+.Pp
+The
+.Fn assert
+macro is a generic assertion of truth, the
+.Fn assert_int_eq
+macro asserts that two integers are equal, the
+.Fn assert_str_eq
+asserts that two nul-terminated C strings are equal, and
+.Fn assert_double_eq
+asserts that the actual double is within +/- threshold of the expected value.
 .Pp
 The
 .Fn astro_test_args
