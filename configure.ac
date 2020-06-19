@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([AstroUnit], [0.6.1], [dwjackson@users.noreply.github.com])
+AC_INIT([AstroUnit], [0.7.0], [dwjackson@users.noreply.github.com])
 AC_CONFIG_SRCDIR([include/astrounit.h])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([-Wall foreign])

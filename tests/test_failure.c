@@ -4,7 +4,7 @@
 /*
  * If you add/remove a test that should fail, change this number:
  */
-#define EXPECTED_FAIL_COUNT 3
+#define EXPECTED_FAIL_COUNT 4
 
 ASTRO_TEST_BEGIN(test_str_eq)
 {
@@ -33,6 +33,12 @@ ASTRO_TEST_BEGIN(test_double_equals)
 }
 ASTRO_TEST_END
 
+ASTRO_TEST_BEGIN(test_unconditional_failure)
+{
+	fail("Unconditional failure test");
+}
+ASTRO_TEST_END
+
 int
 main(void)
 {
@@ -43,6 +49,7 @@ main(void)
 	astro_suite_add_test(suite, test_str_eq, NULL);
 	astro_suite_add_test(suite, test_fail_in_function, NULL);
 	astro_suite_add_test(suite, test_double_equals, NULL);
+	astro_suite_add_test(suite, test_unconditional_failure, NULL);
 	num_failures = astro_suite_run(suite);
 	astro_suite_destroy(suite);
 

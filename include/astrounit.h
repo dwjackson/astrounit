@@ -56,6 +56,9 @@ astro_suite_teardown(struct astro_suite *suite, void (*teardown)(void*));
  ****************************************************************************/
 
 void
+astro_print_fail(const char *failure_message, const char *file, int line);
+
+void
 astro_print_fail_int(int expected,
                      int actual,
                      const char *failure_message,
@@ -74,11 +77,18 @@ astro_print_fail_str(const char *expected,
  * ASSERTS                                                                   *
  *****************************************************************************/
 
+/* Unconditional failure */
+#define fail(failure_message) do { \
+	extern jmp_buf astro_fail; \
+	astro_print_fail(failure_message, __FILE__, __LINE__); \
+        longjmp(astro_fail, 0); \
+} while (0)
+
 /* Generic assert */
 #define assert(test, failure_message) do { \
     if (!(test)) {                         \
         extern jmp_buf astro_fail;         \
-        printf("%s\n", failure_message);   \
+	astro_print_fail(failure_message, __FILE__, __LINE__); \
         longjmp(astro_fail, 0);            \
     }                                      \
 } while (0)

@@ -209,6 +209,12 @@ wait_for_test(pid_t test_pid, pid_t timer_pid)
 }
 
 void
+astro_print_fail(const char *failure_message, const char *file, int line)
+{
+	printf("%s:%d - %s\n", file, line, failure_message);
+}
+
+void
 astro_print_fail_int(
 	int expected,
 	int actual,

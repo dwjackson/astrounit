@@ -1,9 +1,9 @@
-.Dd June 16, 2020
+.Dd June 18, 2020
 .Dt ASTROUNIT 3
 .Os
 .Sh NAME
 .Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
-assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown assert_double_eq
+assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown assert_double_eq fail
 .Nd Create and run tests for C programs
 .Sh LIBRARY
 .Lb libastrounit
@@ -37,6 +37,9 @@ assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite
 .Fo assert
 .Fa "int test" "const char *failure_message"
 .Fc
+.Fo fail
+.Fa "const char *message"
+.Fc
 .Fo astro_test_args
 .Fa "type"
 .Fc
@@ -68,6 +71,10 @@ macro asserts that two integers are equal, the
 asserts that two nul-terminated C strings are equal, and
 .Fn assert_double_eq
 asserts that the actual double is within +/- threshold of the expected value.
+The
+.Fn fail
+macro is used to fail unconditionally with the given
+.Ar message .
 .Pp
 The
 .Fn astro_test_args
