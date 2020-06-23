@@ -10,6 +10,9 @@
 #define DEFAULT_BUFSIZE 10
 #define MAX_TEST_SECONDS 5
 
+#define PASSED '.'
+#define FAILED 'x'
+
 /* Failure Jump Environment
  *
  * This is the environment to which any failed unit test jumps on failure. This
@@ -94,6 +97,8 @@ astro_suite_run(struct astro_suite *suite)
 	struct astro_test *test;
 	int num_tests;
 	int num_failures;
+	int fail;
+	char status;
 	pid_t test_pid;
 	pid_t timer_pid;
 
@@ -101,10 +106,19 @@ astro_suite_run(struct astro_suite *suite)
 	num_failures = 0;
 	for (i = 0; i < suite->length; i++) {
 		test = &(suite->tests)[i];
-		num_failures += perform_test(suite, test);
+		fail = perform_test(suite, test);
+		if (fail) {
+			status = FAILED;
+		} else {
+			status = PASSED;
+		}
+		printf("%c", status);
+		fflush(stdout);
+		num_failures += fail;
 		num_tests++;
 	}
 	suite->num_failures = num_failures;
+	printf("\n");
 	if (num_failures == 0) {
 		printf("----------------------------------------\n");
 		printf(" ALL TESTS PASSED\n");
