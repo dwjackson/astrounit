@@ -21,12 +21,13 @@
 jmp_buf astro_fail;
 
 struct astro_test {
-	astro_ret_t (*run)(void*);
+	astro_ret_t (*run)(unsigned int, void*);
 	void *args;
 };
 
 struct astro_suite {
 	int num_failures;
+	unsigned int flags;
 	size_t bufsize;
 	size_t length;
 	void (*setup)(void*);
@@ -56,6 +57,7 @@ struct astro_suite
 	suite = malloc(size);
 	if (suite != NULL) {
 		memset(suite, 0, size);
+		suite->flags = 0x0;
 		suite->bufsize = DEFAULT_BUFSIZE;
 		suite->setup = do_nothing;
 		suite->setup_args = NULL;
@@ -72,7 +74,7 @@ astro_suite_destroy(struct astro_suite *suite)
 
 void
 astro_suite_add_test(struct astro_suite *suite,
-	astro_ret_t (*test_run)(void*),
+	astro_ret_t (*test_run)(unsigned int, void*),
 	void *args)
 {
 	size_t size;
@@ -101,6 +103,7 @@ astro_suite_run(struct astro_suite *suite)
 	char status;
 	pid_t test_pid;
 	pid_t timer_pid;
+	int is_verbose = suite->flags & FLAG_VERBOSE;
 
 	num_tests = 0;
 	num_failures = 0;
@@ -112,13 +115,19 @@ astro_suite_run(struct astro_suite *suite)
 		} else {
 			status = PASSED;
 		}
-		printf("%c", status);
-		fflush(stdout);
+		if (is_verbose) {
+			printf(" %s\n", status == PASSED ? "PASS" : "FAIL");
+		} else {
+			printf("%c", status);
+			fflush(stdout);
+		}
 		num_failures += fail;
 		num_tests++;
 	}
 	suite->num_failures = num_failures;
-	printf("\n");
+	if (!is_verbose) {
+		printf("\n");
+	}
 	if (num_failures == 0) {
 		printf("----------------------------------------\n");
 		printf(" ALL TESTS PASSED\n");
@@ -152,7 +161,7 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 			exit(EXIT_FAILURE);
 		}
 
-		retval = (test->run)(test->args);
+		retval = (test->run)(suite->flags, test->args);
 
 		if (setjmp(astro_fail) == 0) {
 			suite->teardown(suite->setup_args);
@@ -276,10 +285,25 @@ astro_suite_teardown(struct astro_suite *suite, void (*teardown)(void*))
 int
 astro_main(int argc, char *argv[], void (*add_tests)(struct astro_suite *s))
 {
+	int opt;
+	int vflag = 0;
+	while ((opt = getopt(argc, argv, "v")) != -1) {
+		switch (opt) {
+			case 'v':
+				vflag = 1;
+				break;
+			default:
+				break;
+		}
+	}
+
 	int num_failures = 0;
 	struct astro_suite *suite = astro_suite_create();
-	num_failures = astro_suite_run(suite);
+	if (vflag) {
+		suite->flags |= FLAG_VERBOSE;
+	}
 	add_tests(suite);
+	num_failures = astro_suite_run(suite);
 	astro_suite_destroy(suite);
 	return num_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

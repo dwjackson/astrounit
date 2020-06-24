@@ -3,17 +3,23 @@
 
 #include <string.h>
 #include <setjmp.h>
+#include <stdio.h>
 
 #define ASTRO_FAIL -1
 #define ASTRO_PASS 0
+
+#define FLAG_VERBOSE 0x1
 
 typedef int astro_ret_t;
 
 #define ASTRO_TEST_ARGS_NAME _args
 
 #define ASTRO_TEST_BEGIN(test_name)   \
-astro_ret_t test_name(void *ASTRO_TEST_ARGS_NAME) \
+astro_ret_t test_name(unsigned int flags, void *ASTRO_TEST_ARGS_NAME) \
 { \
+	if (flags & FLAG_VERBOSE) { \
+		printf("%s", __func__); \
+	} \
 	extern jmp_buf astro_fail; \
 	if (setjmp(astro_fail) == 0) { \
 		do \
@@ -38,7 +44,7 @@ astro_suite_destroy(struct astro_suite *suite);
 
 void
 astro_suite_add_test(struct astro_suite *suite,
-                     astro_ret_t (*test)(void*),
+                     astro_ret_t (*test)(unsigned int, void*),
                      void *args);
 
 int
