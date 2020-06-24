@@ -272,3 +272,14 @@ astro_suite_teardown(struct astro_suite *suite, void (*teardown)(void*))
 {
 	suite->teardown = teardown;
 }
+
+int
+astro_main(int argc, char *argv[], void (*add_tests)(struct astro_suite *s))
+{
+	int num_failures = 0;
+	struct astro_suite *suite = astro_suite_create();
+	num_failures = astro_suite_run(suite);
+	add_tests(suite);
+	astro_suite_destroy(suite);
+	return num_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+}

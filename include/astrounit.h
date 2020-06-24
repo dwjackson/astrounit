@@ -50,6 +50,9 @@ astro_suite_setup(struct astro_suite *suite, void (*setup)(void*), void *args);
 void
 astro_suite_teardown(struct astro_suite *suite, void (*teardown)(void*));
 
+int
+astro_main(int argc, char *argv[], void (*add_tests)(struct astro_suite *s));
+
 
 /****************************************************************************
  * ERROR PRINTERS                                                           *
@@ -71,7 +74,6 @@ astro_print_fail_str(const char *expected,
                      const char *failure_message,
                      const char *file,
                      int line);
-
 
 /*****************************************************************************
  * ASSERTS                                                                   *
