@@ -8,14 +8,13 @@
 	"\tassert_int_eq(2, 1 + 1, \"Your ALU seems broken!\");\n" \
 	"}\n" \
 	"ASTRO_TEST_END\n\n" \
-	"int main()\n" \
+	"void add_tests(struct astro_suite *suite)\n" \
 	"{\n" \
-	"\tint num_failures = 0;\n" \
-	"\tstruct astro_suite *suite = astro_suite_create();\n" \
 	"\tastro_suite_add_test(suite, test_example, NULL);\n" \
-	"\tnum_failures = astro_suite_run(suite);\n" \
-	"\tastro_suite_destroy(suite);\n" \
-	"\treturn num_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;\n" \
+	"}\n\n" \
+	"int main(int argc, char *argv[])\n" \
+	"{\n" \
+	"\treturn astro_main(argc, argv, add_tests);\n" \
 	"}\n"
 
 int main(int argc, char *argv[])
