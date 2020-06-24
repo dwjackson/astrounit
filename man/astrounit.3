@@ -3,7 +3,7 @@
 .Os
 .Sh NAME
 .Nm astro_suite_create astro_suite_destroy astro_suite_add_test astro_suite_run
-assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown assert_double_eq fail
+assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite_teardown assert_double_eq fail astro_main
 .Nd Create and run tests for C programs
 .Sh LIBRARY
 .Lb libastrounit
@@ -50,6 +50,10 @@ assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite
 .Ft void
 .Fo astro_suite_teardown
 .Fa "struct astro_suite *suite" "void (*teardown)(void*)"
+.Fc
+.Ft int
+.Fo astro_main
+.Fa "int argc" "char *argv[]" "void (*add_tests)(struct astro_suite *suite)"
 .Fc
 .Sh DESCRIPTION
 Astrounit is a simple C testing library. To create a test, a test suite must
@@ -108,14 +112,13 @@ ASTRO_TEST_BEGIN(simple_test)
 }
 ASTRO_TEST_END
 
-int main(void)
+void add_tests(struct astro_suite *suite)
 {
-	int num_failures = 0;
-	struct astro_suite *suite = astro_suite_create();
-	int arg = 123;
 	astro_suite_add_test(suite, simple_test, &arg);
-	num_failures = astro_suite_run_tests(suite);
-	astro_suite_destroy(suite);
-	return (num_failures == 0 : EXIT_SUCCESS : EXIT_FAILURE);
+}
+
+int main(int argc, char *argv[])
+{
+	return astro_main(argc, argv, add_tests);
 }
 .Ed
