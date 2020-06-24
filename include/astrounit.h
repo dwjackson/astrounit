@@ -8,16 +8,15 @@
 #define ASTRO_FAIL -1
 #define ASTRO_PASS 0
 
-#define FLAG_VERBOSE 0x1
-
 typedef int astro_ret_t;
 
+#define ASTRO_TEST_META _meta
 #define ASTRO_TEST_ARGS_NAME _args
 
 #define ASTRO_TEST_BEGIN(test_name)   \
-astro_ret_t test_name(unsigned int flags, void *ASTRO_TEST_ARGS_NAME) \
+astro_ret_t test_name(struct astro_meta *ASTRO_TEST_META, void *ASTRO_TEST_ARGS_NAME) \
 { \
-	if (flags & FLAG_VERBOSE) { \
+	if (astro_is_verbose(ASTRO_TEST_META)) { \
 		printf("%s", __func__); \
 	} \
 	extern jmp_buf astro_fail; \
@@ -34,6 +33,8 @@ while (0);     \
 
 #define astro_test_args(type) ((type) ASTRO_TEST_ARGS_NAME)
 
+struct astro_meta;
+
 struct astro_suite;
 
 struct astro_suite
@@ -44,7 +45,7 @@ astro_suite_destroy(struct astro_suite *suite);
 
 void
 astro_suite_add_test(struct astro_suite *suite,
-                     astro_ret_t (*test)(unsigned int, void*),
+                     astro_ret_t (*test)(struct astro_meta*, void*),
                      void *args);
 
 int
@@ -58,6 +59,9 @@ astro_suite_teardown(struct astro_suite *suite, void (*teardown)(void*));
 
 int
 astro_main(int argc, char *argv[], void (*add_tests)(struct astro_suite *s));
+
+int
+astro_is_verbose(struct astro_meta *meta);
 
 
 /****************************************************************************

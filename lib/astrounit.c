@@ -13,6 +13,8 @@
 #define PASSED '.'
 #define FAILED 'x'
 
+#define FLAG_VERBOSE 0x1
+
 /* Failure Jump Environment
  *
  * This is the environment to which any failed unit test jumps on failure. This
@@ -20,8 +22,12 @@
  */
 jmp_buf astro_fail;
 
+struct astro_meta {
+	unsigned int flags;
+};
+
 struct astro_test {
-	astro_ret_t (*run)(unsigned int, void*);
+	astro_ret_t (*run)(struct astro_meta*, void*);
 	void *args;
 };
 
@@ -74,7 +80,7 @@ astro_suite_destroy(struct astro_suite *suite)
 
 void
 astro_suite_add_test(struct astro_suite *suite,
-	astro_ret_t (*test_run)(unsigned int, void*),
+	astro_ret_t (*test_run)(struct astro_meta*, void*),
 	void *args)
 {
 	size_t size;
@@ -147,6 +153,7 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 	pid_t timer_pid;
 	astro_ret_t retval;
 	int failure = 0;
+	struct astro_meta meta;
 
 	test_pid = fork();
 	if (test_pid < 0) {
@@ -161,7 +168,8 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 			exit(EXIT_FAILURE);
 		}
 
-		retval = (test->run)(suite->flags, test->args);
+		meta.flags = suite->flags;
+		retval = (test->run)(&meta, test->args);
 
 		if (setjmp(astro_fail) == 0) {
 			suite->teardown(suite->setup_args);
@@ -306,4 +314,10 @@ astro_main(int argc, char *argv[], void (*add_tests)(struct astro_suite *s))
 	num_failures = astro_suite_run(suite);
 	astro_suite_destroy(suite);
 	return num_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int
+astro_is_verbose(struct astro_meta *meta)
+{
+	return meta->flags & FLAG_VERBOSE;
 }
