@@ -16,6 +16,12 @@
 
 #define FLAG_VERBOSE 0x1
 
+/*
+ * This is the file to which all of the messages are logged and printed at the
+ * end of the execution of the test suite.
+ */
+FILE *log_file = NULL;
+
 /* Failure Jump Environment
  *
  * This is the environment to which any failed unit test jumps on failure. This
@@ -54,6 +60,9 @@ run_timer();
 
 static int 
 wait_for_test(pid_t test_pid, pid_t timer_pid);
+
+static int
+astro_printf(const char *fmt, ...);
 
 struct astro_suite
 *astro_suite_create()
@@ -111,6 +120,20 @@ astro_suite_run(struct astro_suite *suite)
 	pid_t test_pid;
 	pid_t timer_pid;
 	int is_verbose = suite->flags & FLAG_VERBOSE;
+	char log_file_name[] = "astro_log_XXXXXX";
+	int log_fd;
+	int ch;
+
+	log_fd = mkstemp(log_file_name);
+	if (log_fd == -1) {
+		perror("mkstemp");
+		return 1;
+	}
+	log_file = fdopen(log_fd, "w+");
+	if (log_file == NULL) {
+		perror("fdopen");
+		return 1;
+	}
 
 	num_tests = 0;
 	num_failures = 0;
@@ -135,6 +158,21 @@ astro_suite_run(struct astro_suite *suite)
 	if (!is_verbose) {
 		printf("\n");
 	}
+
+	/* Print all of the messages that we saved up during the run */
+	if (fseek(log_file, 0, SEEK_SET) == -1) {
+		perror("fseek");
+		fclose(log_file);
+		remove(log_file_name);
+		return suite->num_failures + 1;
+	}
+	while ((ch = fgetc(log_file)) != EOF) {
+		printf("%c", ch);
+	}
+	printf("\n");
+	fclose(log_file);
+	remove(log_file_name);
+
 	if (num_failures == 0) {
 		printf("----------------------------------------\n");
 		printf(" ALL TESTS PASSED\n");
@@ -226,10 +264,9 @@ wait_for_test(pid_t test_pid, pid_t timer_pid)
 
 	pid = wait(&status);
 	if (pid == test_pid && status != 0) {
-		printf("Test exited with abnormal exit status: %d\n", status);
 		failure = 1;
 	} else if (pid == timer_pid) {
-		printf("Test took too long to finish\n");
+		astro_printf("Test took too long to finish\n");
 		failure = 1;
 		kill(test_pid, SIGKILL);
 		waitpid(test_pid, &status, 0);
@@ -246,9 +283,7 @@ astro_printf(const char *fmt, ...)
 	va_list ap;
 	int chars_printed;
 	va_start(ap, fmt);
-	chars_printed = printf("\n");
-	chars_printed += vprintf(fmt, ap);
-	return chars_printed;
+	return vfprintf(log_file, fmt, ap);
 }
 
 void
