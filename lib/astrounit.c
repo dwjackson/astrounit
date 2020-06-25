@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <stdarg.h>
 
 #define DEFAULT_BUFSIZE 10
 #define MAX_TEST_SECONDS 5
@@ -239,10 +240,21 @@ wait_for_test(pid_t test_pid, pid_t timer_pid)
 	return failure;
 }
 
+static int
+astro_printf(const char *fmt, ...)
+{
+	va_list ap;
+	int chars_printed;
+	va_start(ap, fmt);
+	chars_printed = printf("\n");
+	chars_printed += vprintf(fmt, ap);
+	return chars_printed;
+}
+
 void
 astro_print_fail(const char *failure_message, const char *file, int line)
 {
-	printf("%s:%d - %s\n", file, line, failure_message);
+	astro_printf("%s:%d - %s\n", file, line, failure_message);
 }
 
 void
@@ -255,7 +267,7 @@ astro_print_fail_int(
 )
 {
 	char fmt[] = "%s:%d - %s; expected %d, was %d\n";
-	printf(fmt, file, line, failure_message, expected, actual);
+	astro_printf(fmt, file, line, failure_message, expected, actual);
 }
 
 void
@@ -268,7 +280,7 @@ astro_print_fail_str(
 )
 {
 	char fmt[] = "%s:%d - %s; expected \"%s\", was \"%s\"\n";
-	printf(fmt, file, line, failure_message, expected, actual);
+	astro_printf(fmt, file, line, failure_message, expected, actual);
 }
 
 void
