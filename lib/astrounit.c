@@ -310,10 +310,10 @@ wait_for_test(pid_t test_pid, pid_t timer_pid, int pipefd)
 
 	pid = wait(&status);
 	if (pid == test_pid && status != 0) {
-		failure = 1;
+		failure = RET_FAIL;
 	} else if (pid == timer_pid) {
 		astro_printf("Test took too long to finish\n");
-		failure = 1;
+		failure = RET_FAIL;
 		kill(test_pid, SIGKILL);
 		waitpid(test_pid, &status, 0);
 	} else {
