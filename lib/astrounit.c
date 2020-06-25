@@ -13,8 +13,12 @@
 
 #define PASSED '.'
 #define FAILED 'x'
+#define IGNORED '!'
 
 #define FLAG_VERBOSE 0x1
+
+#define RET_FAIL 1
+#define RET_IGNORE 2
 
 /*
  * This is the file to which all of the messages are logged and printed at the
@@ -59,7 +63,7 @@ static void
 run_timer();
 
 static int 
-wait_for_test(pid_t test_pid, pid_t timer_pid);
+wait_for_test(pid_t test_pid, pid_t timer_pid, int pipefd);
 
 static int
 astro_printf(const char *fmt, ...);
@@ -115,6 +119,7 @@ astro_suite_run(struct astro_suite *suite)
 	struct astro_test *test;
 	int num_tests;
 	int num_failures;
+	int num_ignored;
 	int fail;
 	char status;
 	pid_t test_pid;
@@ -123,35 +128,57 @@ astro_suite_run(struct astro_suite *suite)
 	char log_file_name[] = "astro_log_XXXXXX";
 	int log_fd;
 	int ch;
+	char *status_str;
 
 	log_fd = mkstemp(log_file_name);
 	if (log_fd == -1) {
 		perror("mkstemp");
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 	log_file = fdopen(log_fd, "w+");
 	if (log_file == NULL) {
 		perror("fdopen");
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	num_tests = 0;
 	num_failures = 0;
+	num_ignored = 0;
 	for (i = 0; i < suite->length; i++) {
 		test = &(suite->tests)[i];
 		fail = perform_test(suite, test);
-		if (fail) {
+		if (fail == RET_FAIL) {
 			status = FAILED;
+		} else if (fail == RET_IGNORE) {
+			status = IGNORED;
 		} else {
 			status = PASSED;
 		}
 		if (is_verbose) {
-			printf(" %s\n", status == PASSED ? "PASS" : "FAIL");
+			switch (status) {
+				case PASSED:
+					status_str = "PASS";
+					break;
+				case FAILED:
+					status_str = "FAIL";
+					break;
+				case IGNORED:
+					status_str = "IGNORED";
+					break;
+				default:
+					status_str = "";
+					break;
+			}
+			printf(" %s\n", status_str);
 		} else {
 			printf("%c", status);
 			fflush(stdout);
 		}
-		num_failures += fail;
+		if (fail == RET_FAIL) {
+			num_failures++;
+		} else if (fail == RET_IGNORE) {
+			num_ignored++;
+		}
 		num_tests++;
 	}
 	suite->num_failures = num_failures;
@@ -173,9 +200,13 @@ astro_suite_run(struct astro_suite *suite)
 	fclose(log_file);
 	remove(log_file_name);
 
-	if (num_failures == 0) {
+	if (num_failures == 0 && num_ignored == 0) {
 		printf("----------------------------------------\n");
 		printf(" ALL TESTS PASSED\n");
+		printf("----------------------------------------\n");
+	} else if (num_failures == 0 && num_ignored > 0) {
+		printf("----------------------------------------\n");
+		printf(" SOME TESTS PASSED (%d IGNORED)\n", num_ignored);
 		printf("----------------------------------------\n");
 	} else {
 		printf("----------------------------------------\n");
@@ -193,6 +224,12 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 	astro_ret_t retval;
 	int failure = 0;
 	struct astro_meta meta;
+	int pipefd[2];
+
+	if (pipe(pipefd) == -1) {
+		perror("pipe");
+		exit(EXIT_FAILURE);
+	}
 
 	test_pid = fork();
 	if (test_pid < 0) {
@@ -200,6 +237,7 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 		exit(EXIT_FAILURE);
 	} else if (test_pid == 0) {
 		/* In the child, run the test and exit */
+		close(pipefd[0]);
 
 		if (setjmp(astro_fail) == 0) {
 			suite->setup(suite->setup_args);
@@ -212,7 +250,11 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 
 		if (setjmp(astro_fail) == 0) {
 			suite->teardown(suite->setup_args);
-			if (retval == 0) {
+			if (retval == ASTRO_PASS) {
+				exit(EXIT_SUCCESS);
+			} else if (retval == ASTRO_IGNORE) {
+				int ignore = 1;
+				write(pipefd[1], &ignore, sizeof(int));
 				exit(EXIT_SUCCESS);
 			} else {
 				exit(EXIT_FAILURE);
@@ -222,6 +264,8 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 		}
 	} else {
 		/* In the parent */
+		close(pipefd[1]);
+
 		timer_pid = fork();
 		if (timer_pid < 0) {
 			fprintf(stderr, "ERROR: Could not fork()\n");
@@ -229,8 +273,9 @@ perform_test(struct astro_suite *suite, struct astro_test *test)
 		} else if (timer_pid == 0) {
 			run_timer();
 		} else {
-			failure = wait_for_test(test_pid, timer_pid);
+			failure = wait_for_test(test_pid, timer_pid, pipefd[0]);
 		}
+		close(pipefd[0]);
 	}
 
 	return failure;
@@ -256,11 +301,12 @@ run_timer()
  * if the test finishes first the timer is no longer needed and is killed.
  */
 static int 
-wait_for_test(pid_t test_pid, pid_t timer_pid)
+wait_for_test(pid_t test_pid, pid_t timer_pid, int pipefd)
 {
 	pid_t pid;
 	int status;
 	int failure = 0;
+	int buf;
 
 	pid = wait(&status);
 	if (pid == test_pid && status != 0) {
@@ -273,6 +319,10 @@ wait_for_test(pid_t test_pid, pid_t timer_pid)
 	} else {
 		kill(timer_pid, SIGKILL);
 		waitpid(timer_pid, &status, 0);
+
+		if (read(pipefd, &buf, sizeof(int)) != 0 && buf == 1) {
+			failure = RET_IGNORE;
+		}
 	}
 	return failure;
 }

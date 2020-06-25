@@ -5,6 +5,7 @@
 #include <setjmp.h>
 #include <stdio.h>
 
+#define ASTRO_IGNORE -2
 #define ASTRO_FAIL -1
 #define ASTRO_PASS 0
 
@@ -19,6 +20,17 @@ astro_ret_t test_name(struct astro_meta *ASTRO_TEST_META, void *ASTRO_TEST_ARGS_
 	if (astro_is_verbose(ASTRO_TEST_META)) { \
 		printf("%s", __func__); \
 	} \
+	extern jmp_buf astro_fail; \
+	if (setjmp(astro_fail) == 0) { \
+		do \
+
+#define ASTRO_TEST_IGNORE(test_name)   \
+astro_ret_t test_name(struct astro_meta *ASTRO_TEST_META, void *ASTRO_TEST_ARGS_NAME) \
+{ \
+	if (astro_is_verbose(ASTRO_TEST_META)) { \
+		printf("%s", __func__); \
+	} \
+	return ASTRO_IGNORE; \
 	extern jmp_buf astro_fail; \
 	if (setjmp(astro_fail) == 0) { \
 		do \

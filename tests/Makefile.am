@@ -1,7 +1,8 @@
-TESTS = test_success test_failure test_setup test_teardown test_astro_main
+TESTS = test_success test_failure test_setup test_teardown test_astro_main \
+	test_ignore
 
 check_PROGRAMS = test_success test_failure test_setup test_teardown \
-		 test_astro_main
+		 test_astro_main test_ignore
 
 test_success_SOURCES = test_success.c
 test_success_CFLAGS = -g -Wall -I$(top_builddir)/include
@@ -22,3 +23,7 @@ test_teardown_LDADD = $(top_builddir)/lib/libastrounit.la
 test_astro_main_SOURCES = test_astro_main.c
 test_astro_main_CFLAGS = -g -Wall -I$(top_builddir)/include
 test_astro_main_LDADD = $(top_builddir)/lib/libastrounit.la
+
+test_ignore_SOURCES = test_ignore.c
+test_ignore_CFLAGS = -g -Wall -I$(top_builddir)/include
+test_ignore_LDADD = $(top_builddir)/lib/libastrounit.la
