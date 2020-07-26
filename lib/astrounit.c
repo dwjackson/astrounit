@@ -369,6 +369,17 @@ astro_print_fail_str(
 }
 
 void
+astro_print_fail_ptr(void *expected,
+	void *actual,
+	const char *failure_message,
+	const char *file,
+	int line)
+{
+	char fmt[] = "%s:%d - %s; expected 0x%p, was 0x%p\n";
+	astro_printf(fmt, file, line, failure_message, expected, actual);
+}
+
+void
 astro_suite_setup(struct astro_suite *suite, void (*setup)(void*), void *args)
 {
 	suite->setup = setup;

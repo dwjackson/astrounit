@@ -97,6 +97,13 @@ astro_print_fail_str(const char *expected,
                      const char *file,
                      int line);
 
+void
+astro_print_fail_ptr(void *expected,
+                     void *actual,
+                     const char *failure_message,
+                     const char *file,
+                     int line);
+
 /*****************************************************************************
  * ASSERTS                                                                   *
  *****************************************************************************/
@@ -145,6 +152,16 @@ astro_print_fail_str(const char *expected,
         if (strcmp((expected), (actual)) != 0) {                             \
             extern jmp_buf astro_fail;                                       \
             astro_print_fail_str(expected, actual, msg, __FILE__, __LINE__); \
+            longjmp(astro_fail, 0);                                          \
+        }                                                                    \
+    } while (0)
+
+/* Assert that two pointers are equal */
+#define assert_ptr_eq(expected, actual, msg)                                 \
+    do {                                                                     \
+        if (expected != actual) {                                            \
+            extern jmp_buf astro_fail;                                       \
+            astro_print_fail_ptr(expected, actual, msg, __FILE__, __LINE__); \
             longjmp(astro_fail, 0);                                          \
         }                                                                    \
     } while (0)
