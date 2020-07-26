@@ -33,6 +33,9 @@ assert_str_eq assert_int_eq assert astro_test_args astro_suite_setup astro_suite
 .Fo assert_double_eq
 .Fa "double expected" "double actual" "double threshold" "const char *message"
 .Fc
+.Fo assert_ptr_eq
+.Fa "void *expected" "void *actual" "double threshold" "const char *message"
+.Fc
 .Ft type
 .Fo assert
 .Fa "int test" "const char *failure_message"
